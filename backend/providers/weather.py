@@ -68,9 +68,10 @@ async def fetch_openmeteo(geo: GeoPoint, start: date, end: date) -> list[DailyWe
     days = data.get("daily") or {}
     times = days.get("time") or []
     rows = []
+    # 逐条安全取值：API 偶发返回某序列较短的 partial 响应时，用 .get(key, []) 避免 IndexError
     for i in range(len(times)):
-        rows.append({k: v[i] for k, v in days.items()})
-    return [build_daily(row, data.get("daily_units")) for row in rows]
+        rows.append({k: (days.get(k) or [])[i] if i < len(days.get(k) or []) else None for k in days})
+    return [build_daily(row, data.get("daily_units")) for row in rows if row.get("time") is not None]
 
 
 async def fetch_openweathermap(geo: GeoPoint, start: date, end: date, key: str) -> list[DailyWeather]:

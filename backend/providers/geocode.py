@@ -1,6 +1,6 @@
 """城市 → 地理坐标（GeoPoint）。三种来源：
-- 演示库内置（demo 城市）
-- Open-Meteo geocoding API（免费、无 Key，支持中文，已实测可用）
+- 演示库内置（demo 城市，坐标 + 高德 citycode 一并给出）
+- Open-Meteo geocoding API（免费、无 Key、支持中文，已实测可用）
 - 高德 /v3/geocode/geo（有 AMAP_KEY 时，返回 GCJ-02 坐标 + adcode + citycode）
 """
 from __future__ import annotations
@@ -84,7 +84,10 @@ async def geocode(mode: str, city: str, amap_key: str = "") -> tuple[GeoPoint, s
     返回 (GeoPoint, provider_name, citycode_or_empty)
     """
     if mode == "demo":
-        return await geocode_demo(city), "demo", "010"
+        point = await geocode_demo(city)
+        # 演示库内置各地真实 highcitycode，供有高德 Key 时做公交路线正确匹配
+        citycode = DEMO_CITIES.get(_normalize_city(city), {}).get("citycode", "010")
+        return point, "demo", citycode
     if mode == "amap":
         if not amap_key:
             raise ProviderUnavailable("高德数据源需要 AMAP_KEY（服务端 .env 或请求中配置）")
@@ -97,5 +100,5 @@ async def geocode(mode: str, city: str, amap_key: str = "") -> tuple[GeoPoint, s
     except DataSourceError:
         # 兜底：命中内置演示城市库则降级，否则把错误抛给上层处理
         if city_in_demo(city):
-            return await geocode_demo(city), "demo", "010"
+            return await geocode_demo(city), "demo", DEMO_CITIES.get(_normalize_city(city), {}).get("citycode", "010")
         raise

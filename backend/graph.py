@@ -395,6 +395,8 @@ async def _node_budget(state: GraphState) -> dict[str, Any]:
 
     # 酒店：按所选档位（酒店列表没有该档时取第一家）
     hotels = [Hotel.model_validate(h) for h in state["hotels"]]
+    if not hotels:
+        raise WorkflowError("没有酒店数据，无法估算住宿预算")
     chosen = next((h for h in hotels if h.level == req["hotel_level"]), hotels[0])
     hotel_total = round(chosen.price_per_night * days_total, 0)
     hotel_item = BudgetItem(name="酒店住宿", amount=hotel_total, kind="hotel",
