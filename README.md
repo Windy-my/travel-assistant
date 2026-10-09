@@ -62,18 +62,33 @@ docker compose up --build
 
 ### 方式二：本地运行
 
-要求 Python 3.10 ~ 3.12。
+#### 本地运行（Windows / .venv 为开发默认解释器）
+
+项目内已建好虚拟环境 `.venv`（Python 3.12.7，位于仓库根），**不要**往系统的 anaconda base 里装依赖。
+VSCode 已通过 `.vscode/settings.json` 自动选用 `.venv`；安装/运行请始终用 `.venv\Scripts\python.exe`。
+
+```bat
+:: 安装（首次，任选其一；用后台方式或命令行）
+D:\project\travel-assistant\.venv\Scripts\python.exe -m pip install -r requirements.txt
+```
+
+**最简方式（双击即可，推荐）**：
+1. 双击 `start_backend.bat` —— 打开 FastAPI，地址 <http://localhost:8000/docs>；
+2. 再双击 `start_frontend.bat` —— 打开 Streamlit 网页，地址 <http://localhost:8501>。
+   （顺序务必后端在前；前端脚本会探测 8000 是否就绪，未就绪会提示但继续）
+
+**命令行版（等价）**，两个窗口：
+1. 后端：`D:\project\travel-assistant\.venv\Scripts\python.exe -m uvicorn backend.main:app --port 8000`
+2. 前端：`set "BACKEND_URL=http://127.0.0.1:8000" && D:\project\travel-assistant\.venv\Scripts\python.exe -m streamlit run frontend\app.py`
+   （跨平台/终端：先 `export BACKEND_URL=$API_URL` 再 `streamlit run frontend/app.py`）
 
 ```bash
 pip install -r requirements.txt
-
-# 终端 1：后端
 uvicorn backend.main:app --reload --port 8000
-
-# 终端 2：前端
 BACKEND_URL=http://127.0.0.1:8000 streamlit run frontend/app.py
-# Windows (cmd)： set BACKEND_URL=http://127.0.0.1:8000 && streamlit run frontend/app.py
 ```
+
+> 网页打不开速查：① 两个窗口是否先后端后前端；② 后端窗口有无报错（看端口是否被占/uvicorn 是否退出）；③ 后端就绪后前端访问 <http://localhost:8501>，后端 <http://localhost:8000/docs>；④ 若只在别的机器上访问（如容器/远程），前端需用机器 IP 而非 localhost，并把侧边栏“后端 API 地址”改成对应的 `http://<ip>:8000`。
 
 ### 三分钟上手（零 Key 体验）
 
